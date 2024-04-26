@@ -28,40 +28,42 @@ import type { SeriesStatesOptions } from '../../Core/Series/SeriesOptions';
  * */
 
 declare module '../../Core/Series/SeriesOptions' {
-    interface SeriesOptions {
-        borderColor?: ColorType;
-        borderDashStyle?: DashStyleValue;
-        borderRadius?: number|string|BorderRadiusOptionsObject;
-        borderWidth?: number;
-        centerInCategory?: boolean;
-        fillColor?: ColorType;
-        grouping?: boolean;
-        groupPadding?: number;
-        negativeFillColor?: ColorType;
-        pointRange?: (number|null);
-    }
-    interface SeriesStateHoverOptions {
-        borderColor?: ColorType;
-        borderDashStyle?: DashStyleValue;
-        borderRadius?: number;
-        borderWidth?: number;
-        brightness?: number;
-        color?: ColorType;
-        dashStyle?: DashStyleValue;
-    }
-    interface SeriesZonesOptions {
-        borderColor?: ColorType;
-        borderWidth?: number;
-        color?: ColorType;
-    }
+  interface SeriesOptions {
+    borderColor?: ColorType;
+    borderDashStyle?: DashStyleValue;
+    borderRadius?: number | string | BorderRadiusOptionsObject;
+    borderWidth?: number;
+    centerInCategory?: boolean;
+    fillColor?: ColorType;
+    grouping?: boolean;
+    groupPadding?: number;
+    negativeFillColor?: ColorType;
+    pointRange?: number | null;
+  }
+  interface SeriesStateHoverOptions {
+    borderColor?: ColorType;
+    borderDashStyle?: DashStyleValue;
+    borderRadius?: number;
+    borderWidth?: number;
+    brightness?: number;
+    color?: ColorType;
+    dashStyle?: DashStyleValue;
+  }
+  interface SeriesZonesOptions {
+    borderColor?: ColorType;
+    borderWidth?: number;
+    color?: ColorType;
+  }
 }
 
 export interface ColumnSeriesOptions extends LineSeriesOptions {
-    maxPointWidth?: number;
-    minPointLength?: number;
-    pointPadding?: number;
-    pointWidth?: number;
-    states?: SeriesStatesOptions<ColumnSeries>;
+  maxPointWidth?: number;
+  minPointLength?: number;
+  pointPadding?: number;
+  pointWidth?: number;
+  states?: SeriesStatesOptions<ColumnSeries>;
+  itemsInColumn?: number;
+  maxValue?: number;
 }
 
 /* *

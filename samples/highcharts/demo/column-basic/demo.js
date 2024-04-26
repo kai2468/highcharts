@@ -1,47 +1,59 @@
-Highcharts.chart('container', {
-    chart: {
-        type: 'column'
-    },
-    title: {
-        text: 'Corn vs wheat estimated production for 2020',
-        align: 'left'
-    },
-    subtitle: {
-        text:
-            'Source: <a target="_blank" ' +
-            'href="https://www.indexmundi.com/agriculture/?commodity=corn">indexmundi</a>',
-        align: 'left'
-    },
-    xAxis: {
-        categories: ['USA', 'China', 'Brazil', 'EU', 'India', 'Russia'],
-        crosshair: true,
-        accessibility: {
-            description: 'Countries'
-        }
-    },
-    yAxis: {
-        min: 0,
-        title: {
-            text: '1000 metric tons (MT)'
-        }
-    },
-    tooltip: {
-        valueSuffix: ' (1000 MT)'
-    },
-    plotOptions: {
-        column: {
-            pointPadding: 0.2,
-            borderWidth: 0
-        }
-    },
-    series: [
-        {
-            name: 'Corn',
-            data: [406292, 260000, 107000, 68300, 27500, 14500]
-        },
-        {
-            name: 'Wheat',
-            data: [51086, 136000, 5500, 141000, 107180, 77000]
-        }
-    ]
+const chart = Highcharts.chart('container', {
+  chart: {
+    type: 'columnitem'
+    // inverted: true
+  },
+  title: {
+    text: 'UK General Election 2024/2025',
+    align: 'center'
+  },
+  colors: ['#b31f37', '#356cb5', '#db772f', '#8ec63f', '#d89d27', '#d89d27'],
+  subtitle: {
+    text: 'Change in Share of Seats from 2019',
+    align: 'center'
+  },
+  xAxis: {
+    categories: ['LAB', 'CON', 'LDM', 'GRN', 'SDP', 'RFM'],
+    offset: 2
+  },
+  yAxis: {
+    visible: false
+  },
+  legend: {
+    enabled: false
+  },
+  plotOptions: {
+    columnitem: {
+      dataLabels: {
+        enabled: true,
+        format: '+{point.y}'
+      },
+      borderWidth: 1,
+      maxValue: 200,
+      colorByPoint: true
+    }
+  },
+  series: [
+    {
+      name: 'Seat share',
+      data: [49, 50, 16, 4, 2, 1]
+    }
+  ]
 });
+/*
+setTimeout(() => {
+  chart.series[0].update({
+    data: [70, 50, 60, 6, 2, 4]
+  });
+}, 3000);
+*/
+
+let d = 49;
+setInterval(() => {
+  if (d >= 200) return;
+  d += 1;
+
+  chart.series[0].update({
+    data: [d, 50, 60, 6, 2, 4]
+  });
+}, 500);
