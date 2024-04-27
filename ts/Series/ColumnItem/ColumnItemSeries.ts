@@ -156,8 +156,8 @@ class ColumnItemSeries extends ColumnSeries {
     const numRows = Math.ceil(numBoxes / numColumns);
 
     return {
-      width: Math.floor(boxWidth),
-      height: Math.floor(boxHeight),
+      width: boxWidth,
+      height: boxHeight,
       numColumns: numColumns,
       numRows: numRows
     };
@@ -179,19 +179,22 @@ class ColumnItemSeries extends ColumnSeries {
       inverted = this.chart.inverted;
 
     const { width: size, numColumns } = this.fitBoxes(barWidth, barHeight, maxValue);
-
+    let i = 0;
     for (const point of points) {
       const shapeArgs = point.shapeArgs,
         graphics = (point.graphics = point.graphics || []);
 
+      const isNegative = (point?.y ?? 0) < 0;
+      const positiveYValue = Math.abs(point?.y ?? 0);
+
       let x = (shapeArgs?.x ?? 0) + size,
-        y = (shapeArgs?.y ?? 0) + (shapeArgs?.height ?? 0) - size;
+        y = isNegative ? shapeArgs?.y ?? 0 : (shapeArgs?.y ?? 0) + (shapeArgs?.height ?? 0) - size;
 
       if (!point.graphic) {
         point.graphic = this.chart.renderer.g('point').add(this.group);
       }
 
-      for (let val = 0; val < (point.y || 0); val++) {
+      for (let val = 0; val < positiveYValue; val++) {
         const attr = {
           x,
           y,
@@ -201,7 +204,7 @@ class ColumnItemSeries extends ColumnSeries {
         let graphic = graphics[val];
         if (graphic) {
           attr.width = attr.height = size;
-          graphic.animate(attr);
+          graphic.animate(attr, { duration: 0 });
         } else {
           const p = this.chart.renderer.rect(x, y, size, size).attr(attr);
           graphic = p.add(point.graphic);
@@ -214,13 +217,14 @@ class ColumnItemSeries extends ColumnSeries {
         if (!((val + 1) % numColumns)) {
           // Go onto next line if at the end of current row
           x = (shapeArgs?.x ?? 0) + size;
-          y -= size;
+          y = isNegative ? y + size : y - size;
         }
       }
 
       // Set tooltip position
       const bbox = point.graphic?.getBBox();
       point.tooltipPos = inverted ? [bbox.y, bbox.x] : [bbox.x + bbox.width / 2, bbox.y];
+      i++;
     }
   }
 

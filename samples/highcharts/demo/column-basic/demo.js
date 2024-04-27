@@ -13,11 +13,11 @@ const chart = Highcharts.chart('container', {
     align: 'center'
   },
   xAxis: {
-    categories: ['LAB', 'CON', 'LDM', 'GRN', 'SDP', 'RFM'],
-    offset: 2
+    categories: ['LAB', 'CON', 'LDM', 'GRN', 'SDP', 'RFM']
+    //   offset: 2
   },
   yAxis: {
-    visible: false
+    visible: true
   },
   legend: {
     enabled: false
@@ -36,24 +36,22 @@ const chart = Highcharts.chart('container', {
   series: [
     {
       name: 'Seat share',
-      data: [49, 50, 16, 4, 2, 1]
+      data: [49, 50, 16, 4, 2, 1],
+      groupPadding: 0
+      //   pointPadding: 0
     }
   ]
 });
-/*
-setTimeout(() => {
-  chart.series[0].update({
-    data: [70, 50, 60, 6, 2, 4]
-  });
-}, 3000);
-*/
 
 let d = 49;
+let f = -15;
+
 setInterval(() => {
   if (d >= 200) return;
   d += 1;
+  f -= 1;
 
   chart.series[0].update({
-    data: [d, 50, 60, 6, 2, 4]
+    data: [d, 50, 16, 6, 2, 4]
   });
-}, 500);
+}, 100);
