@@ -25,6 +25,8 @@ import ColumnSeriesOptions from '../Column/ColumnSeriesOptions';
 export interface ColumnItemSeriesOptions extends ColumnSeriesOptions {
   itemsInColumn?: number;
   maxValue?: number;
+  minColumns?: number;
+  maxColumns?: number;
 }
 
 /* *

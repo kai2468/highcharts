@@ -94,76 +94,6 @@ class ColumnItemSeries extends ColumnSeries {
   /* eslint-disable valid-jsdoc */
 
   /**
-   * Animate the column heights one by one from zero.
-   *
-   * @private
-   * @function Highcharts.seriesTypes.columnitem#animate
-   *
-   * @param {boolean} init
-   *        Whether to initialize the animation or run it
-   */
-  public animate(init: boolean): void {
-    const series = this,
-      yAxis = this.yAxis,
-      yAxisPos = yAxis.pos,
-      options = series.options,
-      inverted = this.chart.inverted,
-      attr: SVGAttributes = {},
-      translateProp = 'opacity'; // 'translateX' | 'translateY' = inverted ? 'translateX' : 'translateY';
-    let translateStart: number, translatedThreshold;
-
-    if (init) {
-      attr.opacity = 1; //0.1;
-      translatedThreshold = clamp(yAxis.toPixels(options.threshold as any), yAxisPos, yAxisPos + yAxis.len);
-      if (inverted) {
-        // attr.translateX = translatedThreshold - yAxis.len;
-      } else {
-        //  attr.translateY = translatedThreshold;
-      }
-
-      // apply final clipping (used in Highcharts Stock) (#7083)
-      // animation is done by scaleY, so clipping is for panes
-      if (series.clipBox) {
-        series.setClip();
-      }
-
-      series.group.attr(attr);
-    } else {
-      // run the animation
-      translateStart = Number(series.group.attr(translateProp));
-      series.group.animate(
-        { opacity: 1 },
-        extend(animObject(series.options.animation), {
-          // Do the scale synchronously to ensure smooth
-          // updating (#5030, #7228)
-          step: function (val: any, fx: any): void {
-            if (series.group) {
-              attr[translateProp] = val + 0.01;
-              series.group.attr(attr);
-            }
-          }
-        })
-      );
-    }
-  }
-
-  public fitBoxes(containerWidth: number, containerHeight: number, numBoxes: number) {
-    const containerArea = containerWidth * containerHeight;
-    const boxArea = containerArea / numBoxes;
-    const boxWidth = Math.sqrt(boxArea);
-    const boxHeight = boxWidth; // Box dimension is always a square with this method
-    const numColumns = Math.floor(containerWidth / boxWidth);
-    const numRows = Math.ceil(numBoxes / numColumns);
-
-    return {
-      width: boxWidth,
-      height: boxHeight,
-      numColumns: numColumns,
-      numRows: numRows
-    };
-  }
-
-  /**
    * Draw the columns. For bars, the series.group is rotated, so the same
    * coordinates apply for columns and bars. This method is inherited by
    * scatter series.
@@ -173,22 +103,44 @@ class ColumnItemSeries extends ColumnSeries {
    */
 
   public drawPoints(points: Array<ColumnItemPoint> = this.points): void {
-    const barWidth = points?.[0]?.shapeArgs?.width ?? 0,
-      barHeight = (this.translatedThreshold ?? 0) - 35,
-      maxValue = this.options?.maxValue ?? 100,
-      inverted = this.chart.inverted;
+    const total = points.reduce((acc, point) => acc + Math.abs(point.y ?? 0), 0), // Adding all point values together to make one number (total)
+      totalHeight = points.reduce((acc, point) => acc + (point.shapeArgs?.height ?? 0), 0), // Adding all bar heights together to make one number (totalHeight)
+      columnWidth = points[0].shapeArgs?.width ?? 0; // Column width
+    const maxColumns = (this.options as ColumnItemSeriesOptions)?.maxColumns ?? 1;
 
-    const { width: size, numColumns } = this.fitBoxes(barWidth, barHeight, maxValue);
-    let i = 0;
-    for (const point of points) {
-      const shapeArgs = point.shapeArgs,
-        graphics = (point.graphics = point.graphics || []);
+    let slotsPerColumn = Math.max(1, (this.options as ColumnItemSeriesOptions)?.minColumns ?? 1), // 1 slot per column
+      slotWidth = columnWidth / slotsPerColumn; // Set slot width as the whole column width to start off with
 
+    while (slotsPerColumn < total) {
+      const totalPointsValueDividedByCurrentColumnCount = total / slotsPerColumn;
+      const dunno = (totalHeight / slotWidth) * 1.2;
+      if (totalPointsValueDividedByCurrentColumnCount < dunno) {
+        break;
+      }
+
+      // Increment slotsPerColumn and update slotWidth based on it.
+      slotsPerColumn++;
+      slotWidth = columnWidth / slotsPerColumn;
+    }
+
+    if (slotsPerColumn > maxColumns) {
+      slotsPerColumn = maxColumns;
+      slotWidth = columnWidth / slotsPerColumn;
+    }
+
+    const slotHeight = (totalHeight * slotsPerColumn) / total;
+    const size = Math.min(slotWidth, slotHeight);
+
+    for (const point of this.points) {
       const isNegative = (point?.y ?? 0) < 0;
       const positiveYValue = Math.abs(point?.y ?? 0);
+      const shapeArgs = point.shapeArgs,
+        graphics = (point.graphics = point.graphics || []),
+        startX = (shapeArgs?.x ?? 0) + ((shapeArgs?.width ?? 0) - slotsPerColumn * slotWidth + slotWidth) / 2;
 
-      let x = (shapeArgs?.x ?? 0) + size,
-        y = isNegative ? shapeArgs?.y ?? 0 : (shapeArgs?.y ?? 0) + (shapeArgs?.height ?? 0) - size;
+      let x = startX,
+        y = isNegative ? shapeArgs?.y ?? 0 : (shapeArgs?.y ?? 0) + (shapeArgs?.height ?? 0) - slotHeight,
+        slotColumn = 0;
 
       if (!point.graphic) {
         point.graphic = this.chart.renderer.g('point').add(this.group);
@@ -203,28 +155,25 @@ class ColumnItemSeries extends ColumnSeries {
 
         let graphic = graphics[val];
         if (graphic) {
-          attr.width = attr.height = size;
-          graphic.animate(attr, { duration: 0 });
+          attr.width = slotWidth;
+          attr.height = slotHeight;
+          graphic.animate(attr);
         } else {
-          const p = this.chart.renderer.rect(x, y, size, size).attr(attr);
-          graphic = p.add(point.graphic);
+          graphic = this.chart.renderer.rect(x, y, slotWidth, slotHeight).attr(attr).add(point.graphic);
         }
         graphic.isActive = true;
         graphics[val] = graphic;
 
-        x += size;
-
-        if (!((val + 1) % numColumns)) {
-          // Go onto next line if at the end of current row
-          x = (shapeArgs?.x ?? 0) + size;
-          y = isNegative ? y + size : y - size;
+        // Place dots inside the column, moving up the column
+        // as it hits the slotPerColumn value
+        x += slotWidth;
+        slotColumn++;
+        if (slotColumn >= slotsPerColumn) {
+          slotColumn = 0;
+          x = startX;
+          y = isNegative ? y + slotHeight : y - slotHeight;
         }
       }
-
-      // Set tooltip position
-      const bbox = point.graphic?.getBBox();
-      point.tooltipPos = inverted ? [bbox.y, bbox.x] : [bbox.x + bbox.width / 2, bbox.y];
-      i++;
     }
   }
 

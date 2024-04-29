@@ -1,7 +1,7 @@
 const chart = Highcharts.chart('container', {
   chart: {
     type: 'columnitem'
-    // inverted: true
+    //  inverted: true
   },
   title: {
     text: 'UK General Election 2024/2025',
@@ -17,41 +17,49 @@ const chart = Highcharts.chart('container', {
     //   offset: 2
   },
   yAxis: {
-    visible: true
+    visible: false,
+    max: 200
   },
   legend: {
     enabled: false
   },
   plotOptions: {
     columnitem: {
-      dataLabels: {
-        enabled: true,
-        format: '+{point.y}'
-      },
-      borderWidth: 1,
-      maxValue: 200,
-      colorByPoint: true
+      colorByPoint: true,
+      minColumns: 5,
+      maxColumns: 5
     }
   },
   series: [
     {
       name: 'Seat share',
-      data: [49, 50, 16, 4, 2, 1],
-      groupPadding: 0
+      data: [49, 50, -16, 4, 2, 1],
+      groupPadding: 0,
+      borderWidth: 1,
+      animation: {
+        duration: 0
+      },
+      dataLabels: {
+        enabled: true,
+        style: {
+          fontSize: '1em',
+          fontWeight: 'normal'
+        }
+      }
       //   pointPadding: 0
     }
   ]
 });
 
 let d = 49;
-let f = -15;
-
+//let f = -16;
 setInterval(() => {
   if (d >= 200) return;
+
   d += 1;
-  f -= 1;
+  //  f -= 1;
 
   chart.series[0].update({
-    data: [d, 50, 16, 6, 2, 4]
+    data: [d, 50, -16, 4, 2, 4]
   });
-}, 100);
+}, 1000);
